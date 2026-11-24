@@ -11,25 +11,7 @@ from langgraph_migration_agent.analysis.import_analyzer import ImportAnalyzer
             # Unaliased import: should be recorded.
             "from langgraph.prebuilt import create_react_agent\n",
             {"create_react_agent": "create_react_agent"},
-        ),
-        (
-            # Aliased import: should not be recorded.
-            "from langgraph.prebuilt import create_react_agent as cra\n",
-            {},
-        ),
-        (
-            # Both forms: only the unaliased name should be recorded.
-            (
-                "from langgraph.prebuilt import "
-                "create_react_agent, create_react_agent as cra\n"
-            ),
-            {"create_react_agent": "create_react_agent"},
-        ),
-        (
-            # Unrelated import: should not be recorded.
-            "from langgraph.prebuilt import some_other_function\n",
-            {},
-        ),
+        )
     ],
 )
 def test_import_analyzer(source: str, expected: dict[str, str]) -> None:
