@@ -2,7 +2,7 @@ import libcst as cst
 
 
 class R001ImportMigration(cst.CSTTransformer):
-    """Migrate create_react_agent imports to langchain.agents.create_agent."""
+    """Migrate unaliased create_react_agent imports to create_agent."""
 
     def __init__(self) -> None:
         self.diagnostics: list[str] = []
@@ -12,6 +12,7 @@ class R001ImportMigration(cst.CSTTransformer):
         original_node: cst.ImportFrom,
         updated_node: cst.ImportFrom,
     ) -> cst.ImportFrom:
+
         is_langgraph_prebuilt = (
             isinstance(original_node.module, cst.Attribute)
             and isinstance(original_node.module.value, cst.Name)
@@ -33,12 +34,20 @@ class R001ImportMigration(cst.CSTTransformer):
         if not imported_names:
             return updated_node
 
-        # Do not move a mixed import statement to another module.
+        # Aliased imports are outside the current migration scope.
+        if any(imported.asname is not None for imported in imported_names):
+            self.diagnostics.append(
+                "R001: Aliased create_react_agent import found. "
+                "Import was left unchanged; manual review required."
+            )
+            return updated_node
+
+        # Do not move unrelated imports to another module.
         if len(original_node.names) != 1:
             self.diagnostics.append(
                 "R001: Mixed import from langgraph.prebuilt contains "
                 "create_react_agent. Import was left unchanged; "
-                "manual review or import splitting is required."
+                "manual review required."
             )
             return updated_node
 
