@@ -1,29 +1,30 @@
 import libcst as cst
 
+
 class ImportAnalyzer(cst.CSTVisitor):
+    """Find unaliased create_react_agent imports from langgraph.prebuilt."""
 
-    def __init__(self):
-        self.imported_names = {}
+    def __init__(self) -> None:
+        self.imported_names: dict[str, str] = {}
 
-    def visit_ImportFrom(self, node):
-
-        if (
+    def visit_ImportFrom(self, node: cst.ImportFrom) -> None:
+        if not (
             isinstance(node.module, cst.Attribute)
             and isinstance(node.module.value, cst.Name)
             and node.module.value.value == "langgraph"
             and node.module.attr.value == "prebuilt"
         ):
+            return
 
-            for name in node.names:
+        for imported in node.names:
+            if not isinstance(imported, cst.ImportAlias):
+                continue
 
-                if isinstance(name, cst.ImportAlias):
+            if not isinstance(imported.name, cst.Name):
+                continue
 
-                    if name.name.value == "create_react_agent":
-
-                        local_name = (
-                            name.asname.name.value
-                            if name.asname
-                            else name.name.value
-                        )
-
-                        self.imported_names[local_name] = name.name.value
+            if (
+                imported.name.value == "create_react_agent"
+                and imported.asname is None
+            ):
+                self.imported_names["create_react_agent"] = "create_react_agent"

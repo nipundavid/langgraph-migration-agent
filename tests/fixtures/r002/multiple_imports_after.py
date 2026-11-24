@@ -3,5 +3,5 @@ from langgraph.prebuilt import (
     some_other_function,
 )
 
-agent = create_agent(model, tools)
+agent = cra(model, tools)
 other = some_other_function()
