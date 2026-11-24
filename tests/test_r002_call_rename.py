@@ -28,3 +28,27 @@ def test_r002_call_rename(fixture_name):
     )
 
     assert migrated.code == expected
+
+def test_r002_renames_unaliased_imported_call():
+    source = """\
+from langgraph.prebuilt import create_react_agent
+
+agent = create_react_agent(model, tools)
+"""
+
+    expected = """\
+from langgraph.prebuilt import create_react_agent
+
+agent = create_agent(model, tools)
+"""
+
+    module = cst.parse_module(source)
+
+    analyzer = ImportAnalyzer()
+    module.visit(analyzer)
+
+    migrated = module.visit(
+        R002CallRename(analyzer.imported_names)
+    )
+
+    assert migrated.code == expected
