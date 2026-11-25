@@ -250,6 +250,45 @@ Other API changes, deprecated modules and legacy patterns are not automatically 
 
 They require separate migration rules and corresponding decisions.
 
+
+### 4.6 Scope-aware name resolution and shadowing
+
+The initial implementation does not perform scope-aware name resolution.
+
+ImportAnalyzer identifies supported imports at the syntax level. R002 and R003 use the collected imported names to identify eligible function calls.
+
+They do not currently determine whether a local variable, function parameter, or another declaration shadows an imported name.
+
+Before:
+
+```python
+from langgraph.prebuilt import create_react_agent
+
+def my_function(create_react_agent):
+    return create_react_agent(model, tools)
+```
+
+In this example, the function parameter shadows the imported
+`create_react_agent` name inside `my_function`.
+
+Expected behaviour in a scope-aware implementation:
+
+- The imported function should be migrated.
+- The shadowed function parameter and its invocation should remain unchanged.
+
+Current implementation limitation:
+
+R002 may rename the invocation inside `my_function` because it
+matches the imported name collected by ImportAnalyzer.
+
+R003 has the same limitation for matching calls.
+
+Scope-aware name resolution and shadowing detection are deferred
+to a future enhancement.
+
+This limitation must be documented and considered when evaluating
+migration results.
+
 ## 5. Explicitly Deferred Backlog Items
 
 These are potential enhancements, not part of the current implementation scope.
